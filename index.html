@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบรายงานการตรวจเขตพื้นที่ โรงเรียนพัฒนานิคม</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --theme-color: #3b82f6;
+            --theme-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            --theme-light: #eff6ff;
+            --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        }
+        * { 
+            box-sizing: border-box; 
+            font-family: 'Sarabun', sans-serif; 
+            transition: all 0.25s ease; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        body {
+            margin: 0; 
+            padding: 15px; 
+            padding-top: 85px;
+            background: var(--bg-gradient); 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation Bar */
+        .logo-top-left {
+            position: fixed; 
+            top: 12px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            padding: 8px 24px; 
+            border-radius: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 10px; 
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            white-space: nowrap;
+        }
+        .logo-text { font-size: 15px; font-weight: 700; color: #0f172a; letter-spacing: 0.3px; }
+        
+        /* Main Container */
+        .container {
+            width: 100%;
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(16px);
+            padding: 24px; 
+            border-radius: 20px;
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .container::before {
+            content: ''; 
+            position: absolute; 
+            top: 0; left: 0; right: 0; 
+            height: 6px;
+            background: var(--theme-gradient);
+        }
+        h2 { text-align: center; color: #0f172a; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 20px; }
+        
+        .form-group { margin-bottom: 18px; width: 100%; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; color: #334155; font-size: 14px; }
+        input[type="text"], input[type="datetime-local"], input[type="number"] {
+            width: 100%; 
+            padding: 12px 14px; 
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px; 
+            font-size: 15px; 
+            outline: none; 
+            background: #f8fafc;
+            color: #0f172a; 
+            appearance: none; 
+            -webkit-appearance: none;
+        }
+        input:focus { border-color: var(--theme-color); background: #ffffff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        
+        /* Color Selector Buttons */
+        .color-btns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
+        .color-btn {
+            padding: 10px 0; border: none; border-radius: 10px;
+            cursor: pointer; color: white; font-weight: 700; text-align: center; font-size: 13px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05); opacity: 0.65; transform: scale(0.96);
+        }
+        .color-btn.active { opacity: 1; transform: scale(1.03); box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+        .btn-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .btn-green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .btn-yellow { background: linear-gradient(135deg, #eab308, #ca8a04); color: #fff; }
+        .btn-purple { background: linear-gradient(135deg, #a855f7, #9333ea); }
+
+        /* File Upload Area */
+        .upload-section {
+            border: 2px dashed #94a3b8; padding: 20px; text-align: center;
+            border-radius: 14px; background: #f8fafc; cursor: pointer; transition: all 0.2s;
+            width: 100%;
+        }
+        .upload-section:active { background: var(--theme-light); }
+        .preview-images {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 6px; margin-top: 12px;
+        }
+        .preview-images img {
+            width: 100%; height: 60px; object-fit: cover; border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        /* Buttons */
+        .generate-btn {
+            width: 100%; padding: 16px; background: var(--theme-gradient);
+            color: white; font-size: 17px; font-weight: 700; border: none;
+            border-radius: 12px; cursor: pointer; margin-top: 10px;
+            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35); letter-spacing: 0.3px;
+        }
+        .generate-btn:active { transform: scale(0.98); }
+        
+        .download-btn {
+            display: inline-block; width: 100%; padding: 14px; margin-top: 12px;
+            background: #10b981; color: white; font-size: 16px; font-weight: 700;
+            border: none; border-radius: 12px; text-decoration: none; cursor: pointer;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); text-align: center;
+        }
+
+        /* Result Display Area */
+        #result-container { 
+            margin-top: 25px; 
+            text-align: center; 
+            display: none; 
+            width: 100%;
+        }
+
+        .img-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        #result-img { 
+            width: 100%; 
+            max-width: 100%; 
+            height: auto; 
+            display: block;
+            border-radius: 12px; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
+            margin: 0 auto;
+        }
+        .instruction { color: #0284c7; font-weight: 600; font-size: 13px; margin-top: 10px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <div class="logo-top-left">
+        <div class="logo-text">โรงเรียนพัฒนานิคม</div>
+    </div>
+
+    <div class="container">
+        <h2>ระบบรายงานการตรวจเขตพื้นที่</h2>
+        
+        <div class="form-group">
+            <label>เลือกคณะสี</label>
+            <div class="color-btns">
+                <div class="color-btn btn-blue active" onclick="changeTheme('#3b82f6', 'ฟ้า', this)">ฟ้า</div>
+                <div class="color-btn btn-green" onclick="changeTheme('#22c55e', 'เขียว', this)">เขียว</div>
+                <div class="color-btn btn-red" onclick="changeTheme('#ef4444', 'แดง', this)">แดง</div>
+                <div class="color-btn btn-yellow" onclick="changeTheme('#eab308', 'เหลือง', this)">เหลือง</div>
+                <div class="color-btn btn-purple" onclick="changeTheme('#a855f7', 'ม่วง', this)">ม่วง</div>
+            </div>
+            <input type="hidden" id="selectedColorName" value="ฟ้า">
+        </div>
+
+        <div class="form-group">
+            <label>ชื่อผู้ตรวจ</label>
+            <input type="text" id="inspectorName" placeholder="ระบุชื่อผู้ตรวจ...">
+        </div>
+
+        <div class="form-group">
+            <label>วันและเวลาที่ตรวจ</label>
+            <input type="datetime-local" id="inspectDate">
+        </div>
+
+        <div class="form-group">
+            <label>คะแนนที่หัก (คะแนนเต็ม 10)</label>
+            <input type="number" id="deductScore" placeholder="ระบุคะแนนที่หัก (เช่น 2)" value="0">
+            <small style="color: #64748b; margin-top: 4px; display: block;">*หัก 0-1 = ดีเยี่ยม | หัก 2-4 = พอใช้ | หัก 5+ = ปรับปรุงด่วน</small>
+        </div>
+
+        <div class="form-group upload-section" onclick="document.getElementById('imageUploader').click()">
+            <label style="cursor:pointer; font-size:15px; display:block;">📷 ถ่ายภาพ / เลือกรูปภาพขยะ (สูงสุด 35 รูป)</label>
+            <input type="file" id="imageUploader" multiple accept="image/*" style="display:none;" onchange="handleFiles(this.files)">
+            <p id="fileCount" style="margin:6px 0 0; color:#64748b; font-size:13px;">เลือกรูปภาพแล้ว: 0 / 35 รูป</p>
+            <div class="preview-images" id="previewArea"></div>
+        </div>
+
+        <button class="generate-btn" onclick="generateReport()">✨ สร้างรูปภาพรายงานสวยงาม</button>
+        
+        <div id="result-container">
+            <h3 style="color: #10b981; font-weight: 700; font-size: 18px; margin-bottom: 5px;">สร้างรูปภาพรายงานเรียบร้อยแล้ว!</h3>
+            
+            <button id="downloadBtn" class="download-btn" onclick="downloadOrOpenImage()">📥 บันทึกรูปภาพลงเครื่อง</button>
+            <p class="instruction" id="deviceNotice">📱 <b>สำหรับ iOS / iPhone:</b> แตะค้างที่รูปภาพด้านล่างเพื่อ "เพิ่มไปยัง คลังภาพ"</p>
+            
+            <div class="img-wrapper">
+                <img id="result-img" alt="รายงานผลการตรวจ">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('inspectDate').value = now.toISOString().slice(0,16);
+
+        let uploadedFiles = [];
+        let themeColorHex = '#3b82f6';
+        let generatedDataUrl = '';
+
+        function changeTheme(hex, name, el) {
+            themeColorHex = hex;
+            document.documentElement.style.setProperty('--theme-color', hex);
+            document.documentElement.style.setProperty('--theme-gradient', `linear-gradient(135deg, ${hex} 0%, #1d4ed8 100%)`);
+            document.getElementById('selectedColorName').value = name;
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function handleFiles(files) {
+            const previewArea = document.getElementById('previewArea');
+            previewArea.innerHTML = '';
+            uploadedFiles = Array.from(files).slice(0, 35);
+            document.getElementById('fileCount').innerText = `เลือกรูปภาพแล้ว: ${uploadedFiles.length} / 35 รูป`;
+
+            uploadedFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    previewArea.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        const loadImageToCanvas = (src) => new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
+            img.src = src;
+        });
+
+        async function generateReport() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Ultra HD Canvas (1200 x 675 px)
+            const scale = 2;
+            canvas.width = 1200 * scale;
+            canvas.height = 675 * scale;
+            ctx.scale(scale, scale);
+
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            // 1. พื้นหลังหลัก (ไล่สีโทนทางการ สุภาพพรีเมียม)
+            const bgGradient = ctx.createLinearGradient(0, 0, 1200, 675);
+            bgGradient.addColorStop(0, '#f8fafc');
+            bgGradient.addColorStop(0.5, '#f1f5f9');
+            bgGradient.addColorStop(1, '#e2e8f0');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, 1200, 675);
+
+            // 2. เพิ่มลวดลายตารางเรขาคณิต (Formal Grid Pattern) จางๆ ทางการ
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+            ctx.lineWidth = 1;
+            const gridSize = 40;
+            for (let x = 0; x <= 1200; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, 675);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= 675; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(1200, y);
+                ctx.stroke();
+            }
+
+            // 3. กรอบขอบกระดาษรายงานแบบทางการ 2 ชั้น
+            ctx.strokeStyle = themeColorHex;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(15, 15, 1170, 645);
+
+            ctx.strokeStyle = 'rgba(15, 23, 42, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(21, 21, 1158, 633);
+
+            // 4. ลายน้ำข้อความโรงเรียนตรงกลางจางๆ
+            ctx.save();
+            ctx.translate(600, 337.5);
+            ctx.rotate(-Math.PI / 12);
+            ctx.font = 'bold 42px Sarabun, sans-serif';
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.08)';
+            ctx.textAlign = 'center';
+            ctx.fillText('PATTANANIKOM SCHOOL • OFFICIAL REPORT', 0, 0);
+            ctx.restore();
+
+            // 5. Header แถบหัวข้อด้านบน
+            ctx.fillStyle = themeColorHex;
+            ctx.fillRect(21, 21, 1158, 90);
+
+            // ข้อความหัวข้อบนแถบสี
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 30px Sarabun, sans-serif';
+            ctx.fillText('บันทึกรายงานการตรวจเขตพื้นที่ โรงเรียนพัฒนานิคม', 600, 75);
+
+            // รายละเอียดผู้ตรวจและสี
+            const name = document.getElementById('inspectorName').value || '-';
+            const dateVal = document.getElementById('inspectDate').value;
+            const dateObj = new Date(dateVal);
+            const dateStr = `${dateObj.getDate()}/${dateObj.getMonth()+1}/${dateObj.getFullYear()} เวลา ${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')} น.`;
+            const colorName = document.getElementById('selectedColorName').value;
+            
+            const deduct = parseFloat(document.getElementById('deductScore').value) || 0;
+            const finalScore = 10 - deduct;
+
+            // ฝั่งซ้าย: กล่องการ์ดข้อมูลผู้ตรวจ
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.roundRect(40, 135, 340, 130, 12);
+            ctx.fill();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 21px Sarabun, sans-serif';
+            ctx.fillText(`คณะสีที่ตรวจ: คณะสี${colorName}`, 60, 170);
+            ctx.font = '500 16px Sarabun, sans-serif';
+            ctx.fillStyle = '#475569';
+            ctx.fillText(`ผู้ตรวจ: ${name}`, 60, 202);
+            ctx.fillText(`วัน-เวลา: ${dateStr}`, 60, 232);
+
+            // ฝั่งซ้าย: กล่องสรุปคะแนน (ตัวเลขใหญ่ชัดเจน)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.roundRect(40, 280, 340, 185, 12);
+            ctx.fill();
+            ctx.strokeStyle = themeColorHex;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '600 16px Sarabun, sans-serif';
+            ctx.fillText('คะแนนเต็ม: 10 คะแนน', 60, 314);
+            
+            ctx.fillStyle = '#ef4444';
+            ctx.font = '600 16px Sarabun, sans-serif';
+            ctx.fillText(`หักคะแนน: -${deduct} คะแนน`, 60, 346);
+            
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '600 17px Sarabun, sans-serif';
+            ctx.fillText('คะแนนสุทธิ', 60, 392);
+
+            ctx.fillStyle = themeColorHex;
+            ctx.font = 'bold 42px Sarabun, sans-serif';
+            ctx.fillText(`${finalScore} / 10`, 60, 442);
+
+            // ตราประทับประเมินผลทางการ
+            let stampText = 'ดีเยี่ยม';
+            let stampSub = 'PASSED';
+            let stampColor = '#16a34a';
+
+            if (finalScore < 6) {
+                stampText = 'ปรับปรุงด่วน';
+                stampSub = 'ACTION REQ.';
+                stampColor = '#dc2626';
+            } else if (finalScore < 9) {
+                stampText = 'พอใช้';
+                stampSub = 'FAIR';
+                stampColor = '#ca8a04';
+            }
+
+            ctx.save();
+            ctx.translate(210, 565);
+            ctx.rotate(-7 * Math.PI / 180);
+
+            ctx.strokeStyle = stampColor;
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.roundRect(-110, -38, 220, 76, 12);
+            ctx.stroke();
+
+            ctx.strokeStyle = stampColor;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.roundRect(-104, -32, 208, 64, 8);
+            ctx.stroke();
+
+            ctx.fillStyle = stampColor;
+            ctx.font = 'bold 24px Sarabun, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(stampText, 0, 2);
+
+            ctx.font = 'bold 11px Sarabun, sans-serif';
+            ctx.fillText(stampSub, 0, 22);
+            ctx.restore();
+
+            // ฝั่งขวา: คำนวณตาราง Dynamic Grid รูปหลักฐาน
+            const startX = 410;
+            const startY = 140;
+            const availableW = 750;
+            const availableH = 490;
+            const totalImages = uploadedFiles.length;
+
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 19px Sarabun, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`หลักฐานรูปภาพพื้นที่ตรวจ (${totalImages} รูป)`, startX, startY - 12);
+
+            if (totalImages > 0) {
+                let cols = 7;
+                if (totalImages <= 4) cols = 2;
+                else if (totalImages <= 9) cols = 3;
+                else if (totalImages <= 16) cols = 4;
+                else if (totalImages <= 25) cols = 5;
+                else if (totalImages <= 30) cols = 6;
+
+                const rows = Math.ceil(totalImages / cols);
+                const gap = 10;
+
+                const imgW = (availableW - (gap * (cols - 1))) / cols;
+                const imgH = Math.min((availableH - 25 - (gap * (rows - 1))) / rows, imgW * 0.85);
+
+                for (let i = 0; i < totalImages; i++) {
+                    const c = i % cols;
+                    const r = Math.floor(i / cols);
+                    const x = startX + (c * (imgW + gap));
+                    const y = (startY + 10) + (r * (imgH + gap));
+
+                    try {
+                        const reader = new FileReader();
+                        const dataUrl = await new Promise((res) => {
+                            reader.onload = (e) => res(e.target.result);
+                            reader.readAsDataURL(uploadedFiles[i]);
+                        });
+                        const img = await loadImageToCanvas(dataUrl);
+                        if (img) {
+                            const ratio = Math.max(imgW / img.width, imgH / img.height);
+                            const cw = img.width * ratio;
+                            const ch = img.height * ratio;
+                            const cx = (imgW - cw) / 2;
+                            const cy = (imgH - ch) / 2;
+                            
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.roundRect(x, y, imgW, imgH, 8);
+                            ctx.clip();
+                            ctx.drawImage(img, x + cx, y + cy, cw, ch);
+                            ctx.restore();
+                            
+                            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.roundRect(x, y, imgW, imgH, 8);
+                            ctx.stroke();
+                        }
+                    } catch(e) {}
+                }
+            } else {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '500 18px Sarabun, sans-serif';
+                ctx.fillText('ไม่มีการอัปโหลดรูปภาพหลักฐานประกอบ', startX, startY + 100);
+            }
+
+            // แปลง Canvas เป็นไฟล์ JPEG
+            generatedDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+            const resultImg = document.getElementById('result-img');
+            resultImg.src = generatedDataUrl;
+            document.getElementById('result-container').style.display = 'block';
+            resultImg.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function downloadOrOpenImage() {
+            if (!generatedDataUrl) return;
+
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+            if (isIOS) {
+                const newTab = window.open();
+                if (newTab) {
+                    newTab.document.write(`<img src="${generatedDataUrl}" style="width:100%; height:auto;" />`);
+                    newTab.document.title = "บันทึกรูปภาพรายงาน";
+                } else {
+                    alert('แตะค้างที่รูปภาพด้านล่าง แล้วเลือก "เพิ่มไปยัง คลังภาพ" เพื่อบันทึกรูปครับ');
+                }
+            } else {
+                const a = document.createElement('a');
+                a.href = generatedDataUrl;
+                a.download = `รายงานการตรวจเขตพื้นที่_${new Date().getTime()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+    </script>
+</body>
+</html>
